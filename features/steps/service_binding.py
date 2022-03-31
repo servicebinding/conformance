@@ -21,10 +21,7 @@ class ServiceBinding(object):
         self.namespace = namespace
         apiVersion = res["apiVersion"]
         self.crdName = f"servicebindings.{apiVersion.split('/')[0]}"
-        if apiVersion == "servicebinding.io":
-            self.secretPath = '{.status.binding.name}'
-        else:
-            self.secretPath = '{.status.secret}'
+        self.secretPath = '{.status.binding.name}'
 
     def create(self, user):
         return self.cluster.apply(self.yamlContent, self.namespace, user)
@@ -60,7 +57,7 @@ def sbr_is_applied(context, user=None):
     context.sb_secret = ""
 
 @step(u'Service Binding becomes ready')
-def sbo_is_ready(context, sbr_name=None):
+def operator_is_ready(context, sbr_name=None):
     if sbr_name is None:
         sbr_name = list(context.bindings.values())[0].name
     else:
@@ -69,9 +66,12 @@ def sbo_is_ready(context, sbr_name=None):
     jq_is(context, '.status.conditions[] | select(.type=="InjectionReady").status', sbr_name, 'True')
     jq_is(context, '.status.conditions[] | select(.type=="Ready").status', sbr_name, 'True')
     sb = context.bindings[sbr_name]
-    if sb.crdName == "servicebindings.servicebinding.io":
-        assert sb.get_info_by_jsonpath("{.metadata.generation") == sb.get_info_by_jsonpath("{.status.observedGeneration"), \
-            f"Service binding {sb.name} observed generation not equal to generation"
+    generation = sb.get_info_by_jsonpath("{.metadata.generation}")
+    assert generation is not None, f"Unable to get Service Binding {sb.name} generation"
+    observedGeneration = sb.get_info_by_jsonpath("{.status.observedGeneration}")
+    assert observedGeneration is not None, f"Unable to get Service Binding {sb.name} observed generation"
+    assert generation == observedGeneration, \
+        f"Service binding {sb.name} observed generation ({observedGeneration}) not equal to generation ({generation})"
     context.sb_secret = context.bindings[sbr_name].get_secret_name()
 
 

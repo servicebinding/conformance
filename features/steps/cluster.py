@@ -19,7 +19,7 @@ metadata:
   labels:
     app: myapp
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: myapp
@@ -62,7 +62,7 @@ spec:
             print('Resource list is empty under namespace - {}'.format(namespace))
             return None
 
-    def apply(self, yaml, namespace=None, user=None):
+    def apply(self, yaml, namespace=None, user=None, validate=False):
         if namespace is not None:
             ns_arg = f"-n {namespace}"
         else:
@@ -71,7 +71,7 @@ spec:
             user_arg = f"--user={user}"
         else:
             user_arg = ""
-        (output, exit_code) = self.cmd.run(f"{ctx.cli} apply {ns_arg} {user_arg} --validate=false -f -", yaml)
+        (output, exit_code) = self.cmd.run(f"{ctx.cli} apply {ns_arg} {user_arg} --validate={validate} -f -", yaml)
         assert exit_code == 0, f"Non-zero exit code ({exit_code}) while applying a YAML: {output}"
         return output
 
@@ -191,12 +191,11 @@ spec:
     def new_app(self, name, image_name, namespace, bindingRoot=None, asDeploymentConfig=False):
         cmd = f"{ctx.cli} create deployment {name} -n {namespace} --image={image_name}"
         if bindingRoot:
-            (output, exit_code) = self.cmd.run(f"{ctx.cli} apply -f -",
-                                                self.deployment_template.format(name=name, image_name=image_name,
-                                                                                namespace=namespace, bindingRoot=bindingRoot))
+            yaml = self.deployment_template.format(name=name, image_name=image_name, namespace=namespace, bindingRoot=bindingRoot)
+            self.apply(self, yaml, namespace=namespace)
         else:
             (output, exit_code) = self.cmd.run(cmd)
-        assert exit_code == 0, f"Non-zero exit code ({exit_code}) returned when attempting to create a new app using following command line {cmd}\n: {output}"
+            assert exit_code == 0, f"Non-zero exit code ({exit_code}) returned when attempting to create a new app using following command line {cmd}\n: {output}"
 
     def set_label(self, name, label, namespace):
         cmd = f"{ctx.cli} label deployments {name} '{label}' -n {namespace}"
