@@ -10,5 +10,4 @@ class Environment(object):
 
 # This is a global context (complementing behave's context)
 # to be accesible from any place, even where behave's context is not available.
-global ctx
 ctx = Environment(os.getenv("TEST_ACCEPTANCE_CLI", "kubectl"))

@@ -1,7 +1,5 @@
 #!/usr/bin/bash
 
-unset -e
-
 ./setup.sh
 ./run_tests.sh
 if [ $? -ne 0 ]; then
