@@ -1,0 +1,51 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: provisionedbackends.stable.example.com
+spec:
+  group: stable.example.com
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              properties:
+                foo:
+                  type: string
+            status:
+              type: object
+              properties:
+                binding:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+  scope: Namespaced
+  names:
+    plural: provisionedbackends
+    singular: provisionedbackend
+    kind: ProvisionedBackend
+    shortNames:
+      - pbk
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: admin-to-provisionedbackends-stable
+  labels:
+    servicebinding.io/controller: "true"
+rules:
+  - apiGroups: ["stable.example.com"]
+    resources: ["*"]
+    verbs: ["get", "list"]
