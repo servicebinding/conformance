@@ -1,0 +1,38 @@
+name: PR checks
+
+on:
+  pull_request:
+    types: [opened, reopened]
+  push:
+    branches:
+      - main
+
+jobs:
+  it_runs:
+    name: Run tests against an empty cluster
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.10"
+        architecture: "x64"
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Set up kubeconfig
+      run: |
+        KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig
+        echo "KUBECONFIG=$KUBECONFIG" >> $GITHUB_ENV
+    - name: Set up minikube
+      uses: medyagh/setup-minikube@latest
+      env:
+        KUBECONFIG: ${{ env.KUBECONFIG }}
+    - name: Push dependencies
+      run: |
+        eval $(minikube docker-env)
+        docker build -t ghcr.io/servicebindings/generic-test-app resources/apps/generic-test-app
+
+        # TODO: actually have an operator here
+        kubectl apply -f .github/resources/servicebinding_crds.yaml
+    - name: Conformance tests
+      run: .github/resources/run_ci.sh
