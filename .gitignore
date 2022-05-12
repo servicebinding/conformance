@@ -13,3 +13,10 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Ignore test results; we don't want to commit test results by accident
+test-output/
+test-tmp-dir
+
+# Ignore compiled python bitcode
+**/*.pyc
