@@ -10,10 +10,10 @@ PYTHON_VENV_DIR="${OUTPUT_DIR}/venv"
 
 mkdir -p "${OUTPUT_DIR}"
 
-TEST_NAMESPACE="cts-namespace"
+TEST_NAMESPACE="servicebindings-cts"
 TEST_ACCEPTANCE_OUTPUT_DIR="${OUTPUT_DIR}"/results
 
-if [ $(kubectl get namespace ${TEST_NAMESPACE} > /dev/null; echo $?) -ne 0 ]; then
+if [ $(kubectl get namespace ${TEST_NAMESPACE} > /dev/null; echo $?) -eq '0' ]; then
     kubectl delete namespace ${TEST_NAMESPACE}
 fi
 

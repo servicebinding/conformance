@@ -11,7 +11,7 @@ class GenericTestApp(App):
 
     deployment_name_pattern = "{name}"
 
-    def __init__(self, name, namespace, app_image="ghcr.io/servicebindings/generic-test-app"):
+    def __init__(self, name, namespace, app_image="ghcr.io/servicebinding/generic-test-app"):
         App.__init__(self, name, namespace, app_image, "8080")
 
     def format_pattern(self, pattern):
