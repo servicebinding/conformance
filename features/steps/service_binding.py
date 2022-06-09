@@ -62,8 +62,6 @@ def operator_is_ready(context, sbr_name=None):
         sbr_name = list(context.bindings.values())[0].name
     else:
         sbr_name = substitute_scenario_id(context, sbr_name)
-    jq_is(context, '.status.conditions[] | select(.type=="CollectionReady").status', sbr_name, 'True')
-    jq_is(context, '.status.conditions[] | select(.type=="InjectionReady").status', sbr_name, 'True')
     jq_is(context, '.status.conditions[] | select(.type=="Ready").status', sbr_name, 'True')
     sb = context.bindings[sbr_name]
     generation = sb.get_info_by_jsonpath("{.metadata.generation}")

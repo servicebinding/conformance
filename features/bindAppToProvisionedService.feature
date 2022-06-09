@@ -2,60 +2,184 @@ Feature: Bind workload to provisioned service
 
   As a user I would like to bind my applications to provisioned services, as defined by the binding spec
 
-  Scenario: SPEC Bind workload to provisioned service
+  Background:
     Given Namespace [TEST_NAMESPACE] is used
-    And The Secret is present
-            """
-            apiVersion: v1
-            kind: Secret
-            metadata:
-                name: $scenario_id
-            stringData:
-                username: foo
-                password: bar
-                type: db
-            """
     And CRD "provisioned_backend" is available
-    And The Custom Resource is present
-            """
-            apiVersion: stable.example.com/v1
-            kind: ProvisionedBackend
-            metadata:
-                name: $scenario_id
-            spec:
-                foo: bar
-            status:
-                binding:
-                    name: $scenario_id
-            """
+    And The Secret is present
+        """
+        apiVersion: v1
+        kind: Secret
+        metadata:
+            name: provisioned-secret
+        stringData:
+            username: foo
+            password: bar
+            type: db
+        """
+
+  Scenario: Bind workload to provisioned service
+    Given The Custom Resource is present
+        """
+        apiVersion: stable.example.com/v1
+        kind: ProvisionedBackend
+        metadata:
+            name: $scenario_id
+        spec:
+            foo: bar
+        status:
+            binding:
+                name: provisioned-secret
+        """
     And Generic test application is running
     When Service Binding is applied
-          """
-          apiVersion: servicebinding.io/v1alpha3
-          kind: ServiceBinding
-          metadata:
-              name: $scenario_id
-          spec:
-              service:
+        """
+        apiVersion: servicebinding.io/v1beta1
+        kind: ServiceBinding
+        metadata:
+            name: $scenario_id
+        spec:
+            service:
                 apiVersion: stable.example.com/v1
                 kind: ProvisionedBackend
                 name: $scenario_id
-              workload:
-                name: $scenario_id
+            workload:
                 apiVersion: apps/v1
                 kind: Deployment
-          """
+                name: $scenario_id
+        """
     Then Service Binding becomes ready
-    And jq ".status.binding.name" of Service Binding should be changed to "$scenario_id"
+    And jq ".status.binding.name" of Service Binding should be changed to "provisioned-secret"
     And Content of file "/bindings/$scenario_id/username" in workload pod is
-            """
-            foo
-            """
+        """
+        foo
+        """
     And Content of file "/bindings/$scenario_id/password" in workload pod is
-            """
-            bar
-            """
+        """
+        bar
+        """
     And Content of file "/bindings/$scenario_id/type" in workload pod is
-            """
-            db
-            """
+        """
+        db
+        """
+
+  Scenario: Fall back to default if SERVICE_BINDING_ROOT is not set
+    Given The Custom Resource is present
+        """
+        apiVersion: stable.example.com/v1
+        kind: ProvisionedBackend
+        metadata:
+            name: $scenario_id
+        spec:
+            foo: bar
+        status:
+            binding:
+                name: provisioned-secret
+        """
+    And Generic test application is running
+    When Service Binding is applied
+        """
+        apiVersion: servicebinding.io/v1beta1
+        kind: ServiceBinding
+        metadata:
+          name: $scenario_id
+        spec:
+            service:
+                apiVersion: stable.example.com/v1
+                kind: ProvisionedBackend
+                name: $scenario_id
+            workload:
+                apiVersion: apps/v1
+                kind: Deployment
+                name: $scenario_id
+        """
+    Then Service Binding becomes ready
+    And The service binding root is valid
+
+  Scenario: Override type in provisioned service with values from ServiceBinding
+    Given The Custom Resource is present
+        """
+        apiVersion: stable.example.com/v1
+        kind: ProvisionedBackend
+        metadata:
+            name: $scenario_id
+        spec:
+            foo: bar
+        status:
+            binding:
+                name: provisioned-secret
+        """
+    And Generic test application is running
+    When Service Binding is applied
+        """
+        apiVersion: servicebinding.io/v1beta1
+        kind: ServiceBinding
+        metadata:
+          name: $scenario_id
+        spec:
+          service:
+            apiVersion: stable.example.com/v1
+            kind: ProvisionedBackend
+            name: $scenario_id
+          type: baz
+          workload:
+            apiVersion: apps/v1
+            kind: Deployment
+            name: $scenario_id
+        """
+    Then Service Binding becomes ready
+    And Content of file "/bindings/$scenario_id/username" in workload pod is
+        """
+        foo
+        """
+    And Content of file "/bindings/$scenario_id/password" in workload pod is
+        """
+        bar
+        """
+    And Content of file "/bindings/$scenario_id/type" in workload pod is
+        """
+        baz
+        """
+
+  Scenario: Override provider in provisioned service with values from ServiceBinding
+    Given The Custom Resource is present
+        """
+        apiVersion: stable.example.com/v1
+        kind: ProvisionedBackend
+        metadata:
+            name: $scenario_id
+        spec:
+            foo: bar
+        status:
+            binding:
+                name: provisioned-secret
+        """
+    And Generic test application is running with binding root as "/bindings/external"
+    When Service Binding is applied
+        """
+        apiVersion: servicebinding.io/v1beta1
+        kind: ServiceBinding
+        metadata:
+            name: $scenario_id
+        spec:
+            service:
+              apiVersion: stable.example.com/v1
+              kind: ProvisionedBackend
+              name: $scenario_id
+            workload:
+              apiVersion: apps/v1
+              kind: Deployment
+              name: $scenario_id
+        """
+    Then Service Binding becomes ready
+    And Content of file "/bindings/external/$scenario_id/username" in workload pod is
+        """
+        foo
+        """
+    And Content of file "/bindings/external/$scenario_id/password" in workload pod is
+        """
+        bar
+        """
+    And Content of file "/bindings/external/$scenario_id/type" in workload pod is
+        """
+        db
+        """
