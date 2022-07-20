@@ -64,3 +64,9 @@ def check_binding_root(context, name="SERVICE_BINDING_ROOT"):
     # for now, assert a non-zero-length string
     found = polling2.poll(lambda: context.application.get_env_var_value(name), step=5, timeout=400)
     assert len(found) != 0, f'Env var "{name}" should be set'
+
+@then(u'The projected binding "{binding_name}" has "{key}" set to')
+def step_impl(context, binding_name, key):
+    binding_root = polling2.poll(lambda: context.application.get_env_var_value("SERVICE_BINDING_ROOT"), step=5, timeout=400)
+    binding_path = binding_root + '/' + substitute_scenario_id(context, binding_name) + '/' + key
+    check_file_value(context, binding_path)
