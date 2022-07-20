@@ -94,6 +94,18 @@ Feature: Bind workload to provisioned service
         """
     Then Service Binding becomes ready
     And The service binding root is valid
+    And The projected binding "$scenario_id" has "username" set to
+        """
+        foo
+        """
+    And The projected binding "$scenario_id" has "password" set to
+        """
+        bar
+        """
+    And The projected binding "$scenario_id" has "type" set to
+        """
+        db
+        """
 
   Scenario: Override type in provisioned service with values from ServiceBinding
     Given The Custom Resource is present
