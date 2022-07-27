@@ -56,6 +56,7 @@ def sbr_is_applied(context, user=None):
     context.bindings[binding.name] = binding
     context.sb_secret = ""
 
+
 @step(u'Service Binding becomes ready')
 def operator_is_ready(context, sbr_name=None):
     if sbr_name is None:
@@ -71,6 +72,12 @@ def operator_is_ready(context, sbr_name=None):
     assert generation == observedGeneration, \
         f"Service binding {sb.name} observed generation ({observedGeneration}) not equal to generation ({generation})"
     context.sb_secret = context.bindings[sbr_name].get_secret_name()
+
+
+@step(u'Service Binding is not ready')
+def operator_is_ready(context, sbr_name=None):
+    sbr_name = list(context.bindings.values())[0].name
+    jq_is(context, '.status.conditions[] | select(.type=="Ready").status', sbr_name, 'False')
 
 
 # STEP
