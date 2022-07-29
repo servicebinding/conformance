@@ -26,7 +26,7 @@ def before_all(_context):
     assert code == 0, "CRD servicebindings.servicebinding.io not available"
 
     output, code = cmd.run("jq '.spec.versions[] | select(.served == true) | .name'", stdin=service_binding_crd)
-    assert code == 0 and "v1alpha3" in output, "CRD servicebindings.servicebinding.io/v1alpha3 not served"
+    assert code == 0 and "v1beta1" in output, "CRD servicebindings.servicebinding.io/v1beta1 must be served"
 
 
 def before_scenario(_context, _scenario):
