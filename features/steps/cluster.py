@@ -192,7 +192,7 @@ spec:
         cmd = f"{ctx.cli} create deployment {name} -n {namespace} --image={image_name}"
         if bindingRoot:
             yaml = self.deployment_template.format(name=name, image_name=image_name, namespace=namespace, bindingRoot=bindingRoot)
-            self.apply(self, yaml, namespace=namespace)
+            self.apply(yaml, namespace=namespace)
         else:
             (output, exit_code) = self.cmd.run(cmd)
             assert exit_code == 0, f"Non-zero exit code ({exit_code}) returned when attempting to create a new app using following command line {cmd}\n: {output}"

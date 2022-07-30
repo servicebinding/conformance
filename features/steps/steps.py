@@ -30,7 +30,7 @@ def operator_manifest_installed(context, backend_service=None):
 
 # STEP
 @given(u'The Custom Resource is present')
-@given(u'The Secret is present')
+@step(u'The Secret is present')
 def apply_yaml(context, user=None):
     cluster = Cluster()
     resource = substitute_scenario_id(context, context.text)
