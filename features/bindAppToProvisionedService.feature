@@ -183,17 +183,17 @@ Feature: Bind workload to provisioned service
               name: $scenario_id
         """
     Then Service Binding becomes ready
-    And Content of file "/bindings/$scenario_id/username" in workload pod is
+    And Content of file "/bindings/external/$scenario_id/username" in workload pod is
         """
         foo
         """
-    And Content of file "/bindings/$scenario_id/password" in workload pod is
+    And Content of file "/bindings/external/$scenario_id/password" in workload pod is
         """
         bar
         """
-    And Content of file "/bindings/$scenario_id/type" in workload pod is
+    And Content of file "/bindings/external/$scenario_id/type" in workload pod is
         """
-        baz
+        db
         """
 
   Scenario: Override provider in provisioned service with values from ServiceBinding
