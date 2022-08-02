@@ -11,7 +11,7 @@ class GenericTestApp(App):
 
     deployment_name_pattern = "{name}"
 
-    def __init__(self, name, namespace, app_image="ghcr.io/servicebindings/generic-test-app:main"):
+    def __init__(self, name, namespace, app_image="ghcr.io/servicebindings/conformance/generic-test-app:main"):
         App.__init__(self, name, namespace, app_image, "8080")
 
     def get_env_var_value(self, name):
