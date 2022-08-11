@@ -4,7 +4,7 @@ on:
   pull_request: {}
   push:
     branches:
-      - main
+    - main
 
 jobs:
   it_runs:
@@ -31,7 +31,7 @@ jobs:
         eval $(minikube docker-env)
         docker build -t ghcr.io/${{ github.repository }}/generic-test-app:main resources/apps/generic-test-app
 
-        # TODO: actually have an operator here
-        kubectl apply -f .github/resources/servicebinding_crds.yaml
+        # install the reference implementation
+        kubectl apply -f https://github.com/servicebinding/runtime/releases/download/v0.1.0/servicebinding-runtime-v0.1.0.yaml
     - name: Conformance tests
       run: .github/resources/run_ci.sh
