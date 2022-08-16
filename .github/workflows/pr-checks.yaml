@@ -4,7 +4,7 @@ on:
   pull_request: {}
   push:
     branches:
-      - main
+    - main
 
 jobs:
   it_runs:
@@ -16,6 +16,7 @@ jobs:
       with:
         python-version: "3.10"
         architecture: "x64"
+    - uses: vmware-tanzu/carvel-setup-action@v1
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Set up kubeconfig
@@ -31,7 +32,8 @@ jobs:
         eval $(minikube docker-env)
         docker build -t ghcr.io/${{ github.repository }}/generic-test-app:main resources/apps/generic-test-app
 
-        # TODO: actually have an operator here
-        kubectl apply -f .github/resources/servicebinding_crds.yaml
+        # install the reference implementation
+        kapp deploy -y -a cert-manager -f https://github.com/cert-manager/cert-manager/releases/download/v1.9.1/cert-manager.yaml
+        kapp deploy -y -a servicebinding-runtime -f https://github.com/servicebinding/runtime/releases/download/v0.1.1/servicebinding-runtime-v0.1.1.yaml
     - name: Conformance tests
       run: .github/resources/run_ci.sh
