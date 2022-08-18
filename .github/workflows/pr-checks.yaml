@@ -8,7 +8,7 @@ on:
 
 jobs:
   it_runs:
-    name: Run tests against an empty cluster
+    name: Run tests against reference implementation
     runs-on: ubuntu-20.04
     steps:
     - name: Set up Python
