@@ -12,7 +12,7 @@ class GenericTestApp(App):
     deployment_name_pattern = "{name}"
 
     def __init__(self, name, namespace, app_image="ghcr.io/servicebinding/conformance/generic-test-app:main"):
-        App.__init__(self, name, namespace, app_image, "8080")
+        super().__init__(name, namespace, app_image, "8080")
 
     def get_env_var_value(self, name):
         resp = polling2.poll(lambda: requests.get(url=f"http://{self.route_url}/env/{name}"),
@@ -33,7 +33,7 @@ class GenericTestApp(App):
         return resp.text
 
     def set_label(self, label):
-        self.kubernetes.set_label(self.name, label, self.namespace)
+        self.cluster.set_label(self.name, label, self.namespace)
 
 
 @step(u'Generic test application is running')
@@ -66,7 +66,7 @@ def check_binding_root(context, name="SERVICE_BINDING_ROOT"):
     assert len(found) != 0, f'Env var "{name}" should be set'
 
 @then(u'The projected binding "{binding_name}" has "{key}" set to')
-def step_impl(context, binding_name, key):
+def check_binding_value(context, binding_name, key):
     binding_root = polling2.poll(lambda: context.application.get_env_var_value("SERVICE_BINDING_ROOT"), step=5, timeout=400)
     binding_path = binding_root + '/' + substitute_scenario_id(context, binding_name) + '/' + key
     check_file_value(context, binding_path)
