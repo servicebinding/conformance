@@ -35,7 +35,7 @@ class App(object):
         return running
 
     def install(self, bindingRoot=None):
-        self.cluster.new_app(self.name, self.app_image, self.namespace, bindingRoot, self.resource == "deploymentconfig")
+        self.cluster.new_app(self.name, self.app_image, self.namespace, bindingRoot)
         self.cluster.expose_service_route(self.name, self.namespace, self.port)
         return self.is_running(wait=True)
 

@@ -2,6 +2,7 @@ import re
 import time
 import base64
 import json
+import yaml
 from environment import ctx
 from command import Command
 
@@ -19,7 +20,6 @@ metadata:
   labels:
     app: myapp
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: myapp
@@ -31,9 +31,6 @@ spec:
       containers:
       - name: myapp
         image: {image_name}
-        env:
-        - name: SERVICE_BINDING_ROOT
-          value: {bindingRoot}
 '''
 
     def get_resource_lst(self, resource_plural, namespace):
@@ -188,14 +185,14 @@ spec:
         assert exit_code == 0, "Applying yaml file failed as the exit code is not 0"
         return output
 
-    def new_app(self, name, image_name, namespace, bindingRoot=None, asDeploymentConfig=False):
-        cmd = f"{ctx.cli} create deployment {name} -n {namespace} --image={image_name}"
-        if bindingRoot:
-            yaml = self.deployment_template.format(name=name, image_name=image_name, namespace=namespace, bindingRoot=bindingRoot)
-            self.apply(yaml, namespace=namespace)
-        else:
-            (output, exit_code) = self.cmd.run(cmd)
-            assert exit_code == 0, f"Non-zero exit code ({exit_code}) returned when attempting to create a new app using following command line {cmd}\n: {output}"
+    def new_app(self, name, image_name, namespace, bindingRoot=None):
+        formatted = self.deployment_template.format(name=name, image_name=image_name, namespace=namespace, bindingRoot=bindingRoot)
+        if bindingRoot is not None:
+            parsed = yaml.safe_load(formatted)
+            for obj in parsed['spec']['template']['spec']['containers']:
+                obj['env'] = [{'name': 'SERVICE_BINDING_ROOT', 'value': bindingRoot}]
+            formatted = yaml.dump(parsed)
+        self.apply(formatted, namespace=namespace)
 
     def set_label(self, name, label, namespace):
         cmd = f"{ctx.cli} label deployments {name} '{label}' -n {namespace}"
