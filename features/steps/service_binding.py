@@ -1,7 +1,7 @@
 import yaml
 import polling2
 import json
-from behave import step, when, then
+from behave import step
 from cluster import Cluster
 from util import substitute_scenario_id
 
@@ -84,4 +84,4 @@ def jq_is(context, jq_expression, sbr_name=None, json_value=""):
     json_value = substitute_scenario_id(context, json_value)
     polling2.poll(lambda: json.loads(
         context.bindings[sbr_name].get_info_by_jsonpath(jq_expression)) == json_value,
-                  step=5, timeout=800, ignore_exceptions=(json.JSONDecodeError,))
+        step=5, timeout=800, ignore_exceptions=(json.JSONDecodeError,))

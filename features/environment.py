@@ -15,8 +15,6 @@ before_all(context), after_all(context)
 from steps.command import Command
 from steps.environment import ctx
 
-import os
-
 cmd = Command()
 
 

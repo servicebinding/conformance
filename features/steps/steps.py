@@ -5,7 +5,6 @@
 import os
 import re
 import yaml
-import json
 
 from behave import given, step
 from cluster import Cluster
@@ -21,9 +20,10 @@ def operator_manifest_installed(context, backend_service=None):
         ns = None
 
     if backend_service is None:
-        _ = cluster.apply_yaml_file(os.path.join(os.getcwd(), "resources/backend_crd.yaml"), namespace=ns)
+        cluster.apply_yaml_file(os.path.join(os.getcwd(), "resources/backend_crd.yaml"), namespace=ns)
     else:
-        _ = cluster.apply_yaml_file(os.path.join(os.getcwd(), "resources/", backend_service + ".operator.manifest.yaml"), namespace=ns)
+        cluster.apply_yaml_file(os.path.join(os.getcwd(), "resources/", backend_service + ".operator.manifest.yaml"),
+                                namespace=ns)
 
 
 # STEP

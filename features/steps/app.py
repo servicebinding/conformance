@@ -1,10 +1,7 @@
 from cluster import Cluster
 from command import Command
 from environment import ctx
-from behave import step
-from util import substitute_scenario_id
 import polling2
-import json
 
 
 class App(object):
@@ -27,7 +24,8 @@ class App(object):
 
     def is_running(self, wait=False):
         output, exit_code = self.cmd.run(
-            f"{ctx.cli} wait --for=condition=Available=True {self.resource}/{self.name} -n {self.namespace} --timeout={300 if wait else 0}s")
+            f"{ctx.cli} wait --for=condition=Available=True {self.resource}/{self.name} -n \
+                    {self.namespace} --timeout={300 if wait else 0}s")
         running = exit_code == 0
         if running:
             self.route_url = polling2.poll(lambda: self.base_url(),
@@ -44,5 +42,7 @@ class App(object):
 
     def get_generation(self):
         deployment_name = self.cluster.get_deployment_name_in_namespace(
-                            self.format_pattern(self.deployment_name_pattern), self.namespace, resource=self.resource)
-        return int(self.cluster.get_resource_info_by_jsonpath(self.resource, deployment_name, self.namespace, "{.metadata.generation}"))
+            self.format_pattern(self.deployment_name_pattern), self.namespace, resource=self.resource)
+        result = self.cluster.get_resource_info_by_jsonpath(self.resource, deployment_name,
+                                                            self.namespace, "{.metadata.generation}")
+        return int(result)

@@ -37,3 +37,17 @@ jobs:
         kapp deploy -y -a servicebinding-runtime -f https://github.com/servicebinding/runtime/releases/download/v0.1.1/servicebinding-runtime-v0.1.1.yaml
     - name: Conformance tests
       run: .github/resources/run_ci.sh
+  
+  linting:
+    name: Lint checks
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.10"
+        architecture: "x64"
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Run linting checks
+      run: hack/lint-python-code.sh

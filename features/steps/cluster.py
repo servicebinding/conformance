@@ -1,7 +1,7 @@
-import re
-import time
 import base64
 import json
+import re
+import polling2
 import yaml
 from environment import ctx
 from command import Command
@@ -34,7 +34,8 @@ spec:
 '''
 
     def get_resource_lst(self, resource_plural, namespace):
-        output, exit_code = self.cmd.run(f'{ctx.cli} get {resource_plural} -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
+        output, exit_code = self.cmd.run(f'{ctx.cli} get {resource_plural} \
+                -n {namespace} -o "jsonpath={{.items[*].metadata.name}}"')
         assert exit_code == 0, f"Getting resource list failed as the exit code is not 0 with output - {output}"
         if len(output.strip()) == 0:
             return list()
@@ -91,12 +92,14 @@ spec:
         return output
 
     def expose_service_route(self, name, namespace, port=""):
-        output, exit_code = self.cmd.run(f'{ctx.cli} expose deployment {name} -n {namespace} --port={port} --type=NodePort')
+        output, exit_code = self.cmd.run(f'{ctx.cli} expose deployment {name} \
+                -n {namespace} --port={port} --type=NodePort')
         assert exit_code == 0, f"Could not expose deployment: {output}"
 
     def get_route_host(self, name, namespace):
         addr = self.get_node_address()
-        output, exit_code = self.cmd.run(f'{ctx.cli} get service {name} -n {namespace} -o "jsonpath={{.spec.ports[0].nodePort}}"')
+        output, exit_code = self.cmd.run(f'{ctx.cli} get service {name} \
+                -n {namespace} -o "jsonpath={{.spec.ports[0].nodePort}}"')
         host = f"{addr}:{output}"
 
         assert exit_code == 0, f"Getting route host failed as the exit code is not 0 with output - {output}"
@@ -128,20 +131,17 @@ spec:
             print(f'Error getting value for {resource_type}/{name} in {namespace} path={json_path}: {output}')
             return None
 
-    def get_resource_info_by_jq(self, resource_type, name, namespace, jq_expression, wait=False, interval=5, timeout=120):
-        output, exit_code = self.cmd.run(f'{ctx.cli} get {resource_type} {name} -n {namespace} -o json | jq  \'{jq_expression}\'')
+    def get_resource_info_by_jq(self, resource_type, name, namespace, jq_expression):
+        output, exit_code = self.cmd.run(f'{ctx.cli} get {resource_type} {name} -n {namespace} -o json \
+                | jq  \'{jq_expression}\'')
         return output
 
-    def get_deployment_name_in_namespace(self, deployment_name_pattern, namespace, wait=False, interval=5, timeout=120, resource="deployment"):
+    def get_deployment_name_in_namespace(self, deployment_name_pattern, namespace,
+                                         wait=False, interval=5, timeout=120, resource="deployment"):
         if wait:
-            start = 0
-            while ((start + interval) <= timeout):
-                deployment = self.search_resource_in_namespace(resource, deployment_name_pattern, namespace)
-                if deployment is not None:
-                    return deployment
-                time.sleep(interval)
-                start += interval
-            return None
+            return polling2.poll(lambda:
+                                 self.search_resource_in_namespace(resource, deployment_name_pattern, namespace),
+                                 step=interval, timeout=timeout)
         else:
             return self.search_resource_in_namespace(resource, deployment_name_pattern, namespace)
 
@@ -186,7 +186,8 @@ spec:
         return output
 
     def new_app(self, name, image_name, namespace, bindingRoot=None):
-        formatted = self.deployment_template.format(name=name, image_name=image_name, namespace=namespace, bindingRoot=bindingRoot)
+        formatted = self.deployment_template.format(name=name, image_name=image_name,
+                                                    namespace=namespace, bindingRoot=bindingRoot)
         if bindingRoot is not None:
             parsed = yaml.safe_load(formatted)
             for obj in parsed['spec']['template']['spec']['containers']:
