@@ -214,5 +214,67 @@ Feature: Bind workloads matching a label selector to a service
             """
         When Generic test application is running with binding root as "/bindings" and labeled as "app-custom=$scenario_id-2"
         Then File "/bindings/$scenario_id/username" is unavailable in workload pod
-        And  File "/bindings/$scenario_id/password" is unavailable in workload pod
-        And  File "/bindings/$scenario_id/type" is unavailable in workload pod
+        And File "/bindings/$scenario_id/password" is unavailable in workload pod
+        And File "/bindings/$scenario_id/type" is unavailable in workload pod
+
+    Scenario: A workload should not be bound if it doesn't match the label in the service binding
+        Given Generic test application is running with binding root as "/bindings" and labeled as "app-custom=$scenario_id-1"
+        When Service Binding is applied
+            """
+            apiVersion: servicebinding.io/v1beta1
+            kind: ServiceBinding
+            metadata:
+                name: $scenario_id
+            spec:
+                service:
+                    apiVersion: v1
+                    kind: Secret
+                    name: $scenario_id
+                workload:
+                    apiVersion: apps/v1
+                    kind: Deployment
+                    selector:
+                        matchLabels:
+                            app-custom: $scenario_id-2
+            """
+        And File "/bindings/$scenario_id/username" is unavailable in workload pod
+        And File "/bindings/$scenario_id/password" is unavailable in workload pod
+        And File "/bindings/$scenario_id/type" is unavailable in workload pod
+
+    Scenario: Only bind workloads with the correct label
+        Given Generic test application "$scenario_id-1" is running with binding root as "/bindings" and labeled as "app-custom=$scenario_id-1"
+        Given Generic test application "$scenario_id-2" is running with binding root as "/bindings" and labeled as "app-custom=$scenario_id-2"
+        When Service Binding is applied
+            """
+            apiVersion: servicebinding.io/v1beta1
+            kind: ServiceBinding
+            metadata:
+                name: $scenario_id
+            spec:
+                service:
+                    apiVersion: v1
+                    kind: Secret
+                    name: $scenario_id
+                workload:
+                    apiVersion: apps/v1
+                    kind: Deployment
+                    selector:
+                        matchLabels:
+                            app-custom: $scenario_id-2
+            """
+        Then Service Binding becomes ready
+        And File "/bindings/$scenario_id/username" is unavailable in workload pod
+        And File "/bindings/$scenario_id/password" is unavailable in workload pod
+        And File "/bindings/$scenario_id/type" is unavailable in workload pod
+        And Content of file "/bindings/$scenario_id/username" in workload pod "$scenario_id-2" is
+            """
+            foo
+            """
+        And Content of file "/bindings/$scenario_id/password" in workload pod "$scenario_id-2" is
+            """
+            bar
+            """
+        And Content of file "/bindings/$scenario_id/type" in workload pod "$scenario_id-2" is
+            """
+            baz
+            """
