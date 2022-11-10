@@ -193,10 +193,11 @@ spec:
             for obj in parsed['spec']['template']['spec']['containers']:
                 obj['env'] = [{'name': 'SERVICE_BINDING_ROOT', 'value': bindingRoot}]
             formatted = yaml.dump(parsed)
+        print(f'applying deployment: {formatted}')
         self.apply(formatted, namespace=namespace)
 
     def set_label(self, name, label, namespace):
-        cmd = f"{ctx.cli} label deployments {name} '{label}' -n {namespace}"
+        cmd = f"{ctx.cli} label deployments {name} '{label}' -n {namespace} --overwrite"
         (output, exit_code) = self.cmd.run(cmd)
         assert exit_code == 0, f"Non-zero exit code ({exit_code}) returned when attempting set label: {cmd}\n: {output}"
 
