@@ -1,0 +1,30 @@
+version: 2
+updates:
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  reviewers:
+  - servicebinding/conformance
+- package-ecosystem: pip
+  directory: "/features"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  reviewers:
+  - servicebinding/conformance
+- package-ecosystem: pip
+  directory: "/hack"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  reviewers:
+  - servicebinding/conformance
+- package-ecosystem: docker
+  directory: "/resources/apps/generic-test-app"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  reviewers:
+  - servicebinding/conformance
