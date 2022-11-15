@@ -18,7 +18,7 @@ jobs:
         architecture: "x64"
     - uses: vmware-tanzu/carvel-setup-action@v1
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Set up kubeconfig
       run: |
         KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig
@@ -48,6 +48,6 @@ jobs:
         python-version: "3.10"
         architecture: "x64"
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Run linting checks
       run: hack/lint-python-code.sh
