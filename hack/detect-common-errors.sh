@@ -1,7 +1,5 @@
 #!/bin/bash
 
-. ./hack/prepare-env.sh
-
 # run the pyflakes for all files that are provided in $1
 function check_files() {
     for source in $1
@@ -31,8 +29,6 @@ echo "$directories"
 echo "----------------------------------------------------"
 echo
 
-[ "$NOVENV" == "1" ] || prepare_venv || exit 1
-
 # checks for the whole directories
 for directory in $directories
 do
@@ -49,5 +45,5 @@ then
 else
     let total=$pass+$fail
     echo "$fail source files out of $total files needs to be checked and fixed"
-    exit 1
+    failed="$failed\n - detect-common-errors"
 fi
