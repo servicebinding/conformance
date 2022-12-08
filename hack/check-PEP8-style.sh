@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
 
-. ./hack/prepare-env.sh
-
 echo "----------------------------------------------------"
 echo "Running Python linter against following directories:"
 echo "$directories"
 echo "----------------------------------------------------"
 echo
-
-[ "$NOVENV" == "1" ] || prepare_venv || exit 1
 
 # checks for the whole directories
 for directory in $directories
@@ -37,5 +33,5 @@ then
 else
     let total=$pass+$fail
     echo "Linter fail, $fail source files out of $total source files need to be fixed"
-    exit 1
+    failed="$failed\n - check-PEP8-style"
 fi

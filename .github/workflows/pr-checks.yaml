@@ -50,4 +50,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     - name: Run linting checks
-      run: hack/lint-python-code.sh
+      run: |
+        ./setup.sh
+        hack/lint-python-code.sh

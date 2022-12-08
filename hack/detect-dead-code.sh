@@ -1,7 +1,5 @@
 #!/bin/bash
 
-. ./hack/prepare-env.sh
-
 # run the vulture for all files that are provided in $1
 function check_files() {
     for source in $1
@@ -31,8 +29,6 @@ echo "$directories"
 echo "----------------------------------------------------"
 echo
 
-[ "$NOVENV" == "1" ] || prepare_venv || exit 1
-
 # checks for the whole directories
 for directory in $directories
 do
@@ -48,5 +44,5 @@ then
 else
     let total=$pass+$fail
     echo "$fail source files out of $total files seems to contain dead code and/or unused imports"
-    exit 1
+    failed="$failed\n - detect-dead-code"
 fi
