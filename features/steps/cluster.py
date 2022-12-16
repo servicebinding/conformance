@@ -137,7 +137,7 @@ spec:
         return output
 
     def get_deployment_name_in_namespace(self, deployment_name_pattern, namespace,
-                                         wait=False, interval=5, timeout=120, resource="deployment"):
+                                         wait=False, interval=1, timeout=120, resource="deployment"):
         if wait:
             return polling2.poll(lambda:
                                  self.search_resource_in_namespace(resource, deployment_name_pattern, namespace),
