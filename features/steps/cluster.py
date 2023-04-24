@@ -31,6 +31,12 @@ spec:
       containers:
       - name: myapp
         image: {image_name}
+        readinessProbe:
+          httpGet:
+            path: /env
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 1
 '''
 
     def get_resource_lst(self, resource_plural, namespace):
