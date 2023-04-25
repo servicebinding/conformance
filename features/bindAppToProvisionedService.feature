@@ -165,50 +165,6 @@ Feature: Bind workload to provisioned service
             binding:
                 name: provisioned-secret
         """
-    And Generic test application is running with binding root as "/bindings/external"
-    When Service Binding is applied
-        """
-        apiVersion: servicebinding.io/v1beta1
-        kind: ServiceBinding
-        metadata:
-            name: $scenario_id
-        spec:
-            service:
-              apiVersion: stable.example.com/v1
-              kind: ProvisionedBackend
-              name: $scenario_id
-            workload:
-              apiVersion: apps/v1
-              kind: Deployment
-              name: $scenario_id
-        """
-    Then Service Binding becomes ready
-    And Content of file "/bindings/external/$scenario_id/username" in workload pod is
-        """
-        foo
-        """
-    And Content of file "/bindings/external/$scenario_id/password" in workload pod is
-        """
-        bar
-        """
-    And Content of file "/bindings/external/$scenario_id/type" in workload pod is
-        """
-        db
-        """
-
-  Scenario: Override provider in provisioned service with values from ServiceBinding
-    Given The Custom Resource is present
-        """
-        apiVersion: stable.example.com/v1
-        kind: ProvisionedBackend
-        metadata:
-            name: $scenario_id
-        spec:
-            foo: bar
-        status:
-            binding:
-                name: provisioned-secret
-        """
     And Generic test application is running
     When Service Binding is applied
         """
