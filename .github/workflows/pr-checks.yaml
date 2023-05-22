@@ -9,34 +9,43 @@ on:
 jobs:
   it_runs:
     name: Run tests against reference implementation
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.10"
         architecture: "x64"
-    - uses: vmware-tanzu/carvel-setup-action@v1
+
+    - name: Setup Carvel
+      uses: vmware-tanzu/carvel-setup-action@v1
+
     - name: Checkout code
       uses: actions/checkout@v3
-    - name: Set up kubeconfig
+
+    - name: Install kind
       run: |
-        KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig
-        echo "KUBECONFIG=$KUBECONFIG" >> $GITHUB_ENV
-    - name: Set up minikube
-      uses: medyagh/setup-minikube@latest
+        cd $(mktemp -d -t kind.XXXX)
+        curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.19.0/kind-$(go env GOHOSTOS)-$(go env GOHOSTARCH)
+        chmod +x ./kind
+        sudo mv ./kind /usr/local/bin
+        cd -
+
+    - name: Load dependencies
       env:
-        KUBECONFIG: ${{ env.KUBECONFIG }}
-    - name: Push dependencies
+        IMAGE_REF: ghcr.io/${{ github.repository }}/generic-test-app:main
       run: |
-        eval $(minikube docker-env)
-        docker build -t ghcr.io/${{ github.repository }}/generic-test-app:main resources/apps/generic-test-app
+        docker build -t $IMAGE_REF resources/apps/generic-test-app
+        kind create cluster
+        kind load docker-image $IMAGE_REF
 
         # install the reference implementation
-        kapp deploy -y -a cert-manager -f https://github.com/cert-manager/cert-manager/releases/download/v1.9.1/cert-manager.yaml
-        kapp deploy -y -a servicebinding-runtime -f https://github.com/servicebinding/runtime/releases/download/v0.2.0/servicebinding-runtime-v0.2.0.yaml -f https://github.com/servicebinding/runtime/releases/download/v0.2.0/servicebinding-workloadresourcemappings-v0.2.0.yaml
+        kapp deploy -y -a cert-manager -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+        kapp deploy -y -a servicebinding-runtime -f https://github.com/servicebinding/runtime/releases/download/v0.3.0/servicebinding-runtime-v0.3.0.yaml -f https://github.com/servicebinding/runtime/releases/download/v0.3.0/servicebinding-workloadresourcemappings-v0.3.0.yaml
+
     - name: Conformance tests
       run: .github/resources/run_ci.sh
+
     - name: Collect diagnostics
       run: |
         set +o errexit
