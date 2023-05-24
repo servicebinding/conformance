@@ -2,6 +2,7 @@ from environment import ctx
 from command import Command
 from behave import given
 from util import substitute_scenario_id
+import polling2
 
 import os
 
@@ -13,8 +14,7 @@ class Namespace(object):
 
     def create(self):
         output, exit_code = self.cmd.run(f"{ctx.cli} create namespace {self.name}")
-        assert exit_code == 0, f"Unexpected output when creating namespace: '{output}'"
-        return True
+        return exit_code == 0
 
     def is_present(self):
         _, exit_code = self.cmd.run(f'{ctx.cli} get ns {self.name}')
@@ -25,13 +25,17 @@ def namespace_maybe_create(context, namespace_name):
     namespace = Namespace(substitute_scenario_id(context, namespace_name))
     if not namespace.is_present():
         print("Namespace is not present, creating namespace: {}...".format(namespace_name))
-        assert namespace.create(), f"Unable to create namespace '{namespace_name}'"
+        if not namespace.create():
+            print(f"Unable to create namespace '{namespace_name}'")
+            return None
+
     print("Namespace {} is created!!!".format(namespace_name))
     return namespace
 
 
 def namespace_is_used(context, namespace_name):
-    context.namespace = namespace_maybe_create(context, namespace_name)
+    context.namespace = polling2.poll(lambda: namespace_maybe_create(context, namespace_name),
+                                      step=1, timeout=30, check_success=lambda x: x is not None)
 
 
 @given(u'Namespace [{namespace_env}] is used')
