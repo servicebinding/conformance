@@ -10,7 +10,7 @@ Feature: Bind workload to provisioned service
         apiVersion: v1
         kind: Secret
         metadata:
-            name: provisioned-secret
+            name: $scenario_id-secret
         stringData:
             username: foo
             password: bar
@@ -28,7 +28,7 @@ Feature: Bind workload to provisioned service
             foo: bar
         status:
             binding:
-                name: provisioned-secret
+                name: $scenario_id-secret
         """
     And Generic test application is running
     When Service Binding is applied
@@ -48,7 +48,7 @@ Feature: Bind workload to provisioned service
                 name: $scenario_id
         """
     Then Service Binding becomes ready
-    And jq ".status.binding.name" of Service Binding should be changed to "provisioned-secret"
+    And jq ".status.binding.name" of Service Binding should be changed to "$scenario_id-secret"
     And Content of file "/bindings/$scenario_id/username" in workload pod is
         """
         foo
@@ -73,7 +73,7 @@ Feature: Bind workload to provisioned service
             foo: bar
         status:
             binding:
-                name: provisioned-secret
+                name: $scenario_id-secret
         """
     And Generic test application is running
     When Service Binding is applied
@@ -118,7 +118,7 @@ Feature: Bind workload to provisioned service
             foo: bar
         status:
             binding:
-                name: provisioned-secret
+                name: $scenario_id-secret
         """
     And Generic test application is running
     When Service Binding is applied
@@ -163,7 +163,7 @@ Feature: Bind workload to provisioned service
             foo: bar
         status:
             binding:
-                name: provisioned-secret
+                name: $scenario_id-secret
         """
     And Generic test application is running
     When Service Binding is applied
@@ -212,7 +212,7 @@ Feature: Bind workload to provisioned service
             foo: bar
         status:
             binding:
-                name: provisioned-secret
+                name: $scenario_id-secret
         """
     And Generic test application is running with binding root as "/bindings/external"
     When Service Binding is applied
