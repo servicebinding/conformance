@@ -82,6 +82,10 @@ jobs:
         architecture: "x64"
     - name: Checkout code
       uses: actions/checkout@v4
+    - name: Shellcheck
+      uses: redhat-plumbers-in-action/differential-shellcheck@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
     - name: Run linting checks
       run: |
         ./setup.sh
