@@ -18,15 +18,15 @@ metadata:
   name: '{name}'
   namespace: {namespace}
   labels:
-    app: myapp
+    app: '{name}'
 spec:
   selector:
     matchLabels:
-      app: myapp
+      app: '{name}'
   template:
     metadata:
       labels:
-        app: myapp
+        app: '{name}'
     spec:
       containers:
       - name: myapp
@@ -196,8 +196,10 @@ spec:
                                                     namespace=namespace, bindingRoot=bindingRoot)
         if bindingRoot is not None:
             parsed = yaml.safe_load(formatted)
-            for obj in parsed['spec']['template']['spec']['containers']:
-                obj['env'] = [{'name': 'SERVICE_BINDING_ROOT', 'value': bindingRoot}]
+            for container in parsed['spec']['template']['spec']['containers']:
+                if 'env' not in container:
+                    container['env'] = list()
+                container['env'].append({'name': 'SERVICE_BINDING_ROOT', 'value': bindingRoot})
             formatted = yaml.dump(parsed)
         print(f'applying deployment: {formatted}')
         self.apply(formatted, namespace=namespace)
